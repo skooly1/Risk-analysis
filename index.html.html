@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خريطة تحليل المخاطر - Skooly Smart AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --skooly-blue: #0B4F9E;
+    --skooly-cyan: #00C8E0;
+    --skooly-teal: #007B8E;
+    --skooly-dark: #050D1A;
+    --skooly-navy: #061830;
+    --skooly-mid: #0A2A52;
+
+    --risk-critical: #FF2D55;
+    --risk-high: #FF6B35;
+    --risk-medium: #FFB800;
+    --risk-low: #00C48C;
+
+    --glass: rgba(255,255,255,0.04);
+    --glass-border: rgba(0,200,224,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--skooly-dark);
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    color: #E8F4FF;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,200,224,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(11,79,158,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,123,142,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid pattern */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,224,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,224,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--skooly-cyan), var(--skooly-blue));
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    animation: pulse 3s ease infinite;
+  }
+
+  .brand-text {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, var(--skooly-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+
+  .page-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .page-title span {
+    background: linear-gradient(135deg, var(--skooly-cyan), #7DF9FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: rgba(200,230,255,0.6);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  .header-divider {
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--skooly-cyan), transparent);
+    margin: 20px auto;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* MATRIX SECTION */
+  .matrix-wrapper {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(20px);
+    animation: fadeUp 0.8s 0.3s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .matrix-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 50%; right: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--skooly-cyan), transparent);
+    transform: translateX(-50%);
+    width: 60%;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--skooly-cyan);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--skooly-cyan);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Risk Matrix Grid */
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(5, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 4px;
+    min-height: 340px;
+  }
+
+  .matrix-label-y {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(200,230,255,0.7);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-row: 1 / 6;
+    grid-column: 1;
+  }
+
+  .matrix-label-x {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(200,230,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  .matrix-cell {
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    position: relative;
+    cursor: default;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+  }
+
+  .matrix-cell:hover {
+    transform: scale(1.05);
+    z-index: 10;
+  }
+
+  .cell-critical { background: rgba(255,45,85,0.25); border: 1px solid rgba(255,45,85,0.4); }
+  .cell-high { background: rgba(255,107,53,0.2); border: 1px solid rgba(255,107,53,0.35); }
+  .cell-medium { background: rgba(255,184,0,0.15); border: 1px solid rgba(255,184,0,0.3); }
+  .cell-low { background: rgba(0,196,140,0.12); border: 1px solid rgba(0,196,140,0.25); }
+
+  .cell-risk-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    animation: pulse 2s ease infinite;
+  }
+
+  .risk-bubble {
+    position: absolute;
+    inset: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 4px;
+  }
+
+  .risk-bubble .risk-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+  .risk-bubble .risk-abbr {
+    font-size: 9px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.2;
+  }
+
+  /* RISKS GRID */
+  .risks-section {
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .risks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .risk-card {
+    background: var(--glass);
+    border-radius: 18px;
+    padding: 22px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+  }
+
+  .risk-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .risk-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 0 18px 0 80px;
+    opacity: 0.15;
+  }
+
+  .risk-card.critical { border-color: rgba(255,45,85,0.35); }
+  .risk-card.critical:hover { border-color: rgba(255,45,85,0.7); box-shadow: 0 20px 60px rgba(255,45,85,0.2); }
+  .risk-card.critical::before { background: var(--risk-critical); }
+
+  .risk-card.high { border-color: rgba(255,107,53,0.3); }
+  .risk-card.high:hover { border-color: rgba(255,107,53,0.6); box-shadow: 0 20px 60px rgba(255,107,53,0.15); }
+  .risk-card.high::before { background: var(--risk-high); }
+
+  .risk-card.medium { border-color: rgba(255,184,0,0.25); }
+  .risk-card.medium:hover { border-color: rgba(255,184,0,0.55); box-shadow: 0 20px 60px rgba(255,184,0,0.12); }
+  .risk-card.medium::before { background: var(--risk-medium); }
+
+  .risk-card.low { border-color: rgba(0,196,140,0.2); }
+  .risk-card.low:hover { border-color: rgba(0,196,140,0.5); box-shadow: 0 20px 60px rgba(0,196,140,0.1); }
+  .risk-card.low::before { background: var(--risk-low); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .risk-badge {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .risk-badge.critical { background: rgba(255,45,85,0.2); border: 1px solid rgba(255,45,85,0.4); }
+  .risk-badge.high { background: rgba(255,107,53,0.2); border: 1px solid rgba(255,107,53,0.4); }
+  .risk-badge.medium { background: rgba(255,184,0,0.15); border: 1px solid rgba(255,184,0,0.35); }
+  .risk-badge.low { background: rgba(0,196,140,0.15); border: 1px solid rgba(0,196,140,0.3); }
+
+  .card-meta { flex: 1; }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .card-category {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  .risk-level-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .risk-level-pill.critical { background: rgba(255,45,85,0.2); color: #FF6B8A; border: 1px solid rgba(255,45,85,0.3); }
+  .risk-level-pill.high { background: rgba(255,107,53,0.2); color: #FF9070; border: 1px solid rgba(255,107,53,0.3); }
+  .risk-level-pill.medium { background: rgba(255,184,0,0.15); color: #FFD44D; border: 1px solid rgba(255,184,0,0.25); }
+  .risk-level-pill.low { background: rgba(0,196,140,0.15); color: #4DDBB8; border: 1px solid rgba(0,196,140,0.25); }
+
+  .risk-desc {
+    font-size: 13px;
+    color: rgba(180,210,240,0.75);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .risk-metrics {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .metric-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 12px;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .metric-label {
+    font-size: 9px;
+    color: rgba(200,220,240,0.5);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .metric-value {
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .mitigation-box {
+    background: rgba(0,200,224,0.05);
+    border: 1px solid rgba(0,200,224,0.15);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .mitigation-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--skooly-cyan);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mitigation-text {
+    font-size: 12px;
+    color: rgba(180,220,240,0.85);
+    line-height: 1.5;
+  }
+
+  /* PROBABILITY BARS */
+  .prob-bar-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .prob-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* SUMMARY STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .stat-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card:hover { transform: translateY(-3px); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .stat-card.critical::after { background: var(--risk-critical); }
+  .stat-card.high::after { background: var(--risk-high); }
+  .stat-card.medium::after { background: var(--risk-medium); }
+  .stat-card.low::after { background: var(--risk-low); }
+
+  .stat-number {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.critical .stat-number { color: var(--risk-critical); }
+  .stat-card.high .stat-number { color: var(--risk-high); }
+  .stat-card.medium .stat-number { color: var(--risk-medium); }
+  .stat-card.low .stat-number { color: var(--risk-low); }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(180,210,240,0.7);
+    letter-spacing: 0.3px;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0,200,224,0.1);
+    color: rgba(150,185,220,0.4);
+    font-size: 12px;
+    animation: fadeUp 0.8s 0.5s ease both;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 10px currentColor; }
+    50% { box-shadow: 0 0 25px currentColor; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .risks-grid { grid-template-columns: 1fr; }
+    .matrix-grid { grid-template-columns: 60px repeat(5, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .section-divider {
+    margin: 36px 0 28px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--skooly-cyan);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,200,224,0.3), transparent);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-icon">🛡️</div>
+      <span class="brand-text">SKOOLY SMART AI</span>
+    </div>
+    <div class="header-divider"></div>
+    <h1 class="page-title">خريطة تحليل <span>المخاطر</span> المحتملة</h1>
+    <p class="page-subtitle">Risk Analysis Map — تقييم شامل لمخاطر المشروع واستراتيجيات الاستجابة</p>
+    <div class="header-divider"></div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--risk-critical); box-shadow:0 0 8px var(--risk-critical)"></div>
+      خطر حرج — Critical
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--risk-high); box-shadow:0 0 8px var(--risk-high)"></div>
+      خطر مرتفع — High
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--risk-medium); box-shadow:0 0 8px var(--risk-medium)"></div>
+      خطر متوسط — Medium
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--risk-low); box-shadow:0 0 8px var(--risk-low)"></div>
+      خطر منخفض — Low
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-card critical">
+      <div class="stat-number">3</div>
+      <div class="stat-label">مخاطر حرجة</div>
+    </div>
+    <div class="stat-card high">
+      <div class="stat-number">3</div>
+      <div class="stat-label">مخاطر مرتفعة</div>
+    </div>
+    <div class="stat-card medium">
+      <div class="stat-number">2</div>
+      <div class="stat-label">مخاطر متوسطة</div>
+    </div>
+    <div class="stat-card low">
+      <div class="stat-number">1</div>
+      <div class="stat-label">مخاطر منخفضة</div>
+    </div>
+  </div>
+
+  <!-- RISK MATRIX -->
+  <div class="matrix-wrapper">
+    <div class="section-title">مصفوفة تقييم المخاطر — احتمالية × الأثر</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <!-- Y AXIS LABEL TOP -->
+      <div style="text-align:right; font-size:11px; color:rgba(0,200,224,0.7); font-weight:700; margin-bottom:4px;">← الأثر (Impact)</div>
+      <div class="matrix-grid">
+        <!-- Y Label -->
+        <div class="matrix-label-y">الاحتمالية (Probability) ↑</div>
+
+        <!-- X Labels Row -->
+        <div class="matrix-label-x" style="font-size:10px; color:rgba(0,200,224,0.6);">منخفض جداً</div>
+        <div class="matrix-label-x" style="font-size:10px; color:rgba(0,200,224,0.6);">منخفض</div>
+        <div class="matrix-label-x" style="font-size:10px; color:rgba(0,200,224,0.6);">متوسط</div>
+        <div class="matrix-label-x" style="font-size:10px; color:rgba(0,200,224,0.6);">مرتفع</div>
+        <div class="matrix-label-x" style="font-size:10px; color:rgba(0,200,224,0.6);">حرج</div>
+
+        <!-- Row 5: Very High Probability -->
+        <div class="matrix-cell cell-medium"><span style="font-size:9px;color:rgba(255,184,0,0.8);">R8</span></div>
+        <div class="matrix-cell cell-high"></div>
+        <div class="matrix-cell cell-high"></div>
+        <div class="matrix-cell cell-critical">
+          <div class="risk-bubble"><span class="risk-num">R1</span><span class="risk-abbr">أمن البيانات</span></div>
+        </div>
+        <div class="matrix-cell cell-critical">
+          <div class="risk-bubble"><span class="risk-num">R2</span><span class="risk-abbr">تسرب بيانات</span></div>
+        </div>
+
+        <!-- Row 4: High Probability -->
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-medium">
+          <div class="risk-bubble"><span class="risk-num">R9</span><span class="risk-abbr">ربط شبكي</span></div>
+        </div>
+        <div class="matrix-cell cell-high">
+          <div class="risk-bubble"><span class="risk-num">R4</span><span class="risk-abbr">مقاومة تغيير</span></div>
+        </div>
+        <div class="matrix-cell cell-high"></div>
+        <div class="matrix-cell cell-critical">
+          <div class="risk-bubble"><span class="risk-num">R3</span><span class="risk-abbr">تشريعات</span></div>
+        </div>
+
+        <!-- Row 3: Medium Probability -->
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-low">
+          <div class="risk-bubble"><span class="risk-num">R12</span><span class="risk-abbr">تأخر توريد</span></div>
+        </div>
+        <div class="matrix-cell cell-medium">
+          <div class="risk-bubble"><span class="risk-num">R7</span><span class="risk-abbr">منافسة</span></div>
+        </div>
+        <div class="matrix-cell cell-high">
+          <div class="risk-bubble"><span class="risk-num">R6</span><span class="risk-abbr">تمويل</span></div>
+        </div>
+        <div class="matrix-cell cell-high"></div>
+
+        <!-- Row 2: Low Probability -->
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-medium"></div>
+        <div class="matrix-cell cell-medium"></div>
+        <div class="matrix-cell cell-high"></div>
+
+        <!-- Row 1: Very Low Probability -->
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-low"></div>
+        <div class="matrix-cell cell-medium"></div>
+        <div class="matrix-cell cell-medium"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RISK CARDS -->
+  <div class="section-divider">🔴 المخاطر الحرجة</div>
+  <div class="risks-grid" style="margin-bottom: 28px;">
+
+    <div class="risk-card critical">
+      <div class="card-header">
+        <div class="risk-badge critical">🔐</div>
+        <div class="card-meta">
+          <div class="card-title">أمن البيانات الشخصية للأطفال</div>
+          <div class="card-category" style="color:var(--risk-critical);">R1 — تقني / قانوني</div>
+        </div>
+      </div>
+      <div class="risk-level-pill critical">⚠ حرج | درجة المخاطرة: 25/25</div>
+      <div class="risk-desc">اختراق أو تسرب بيانات المواقع والمؤشرات الحيوية للطلاب القاصرين مما يعرض الشركة لمسؤولية قانونية مشددة وفقدان الثقة الكامل.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">مرتفعة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:80%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-critical);">كارثي</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:95%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">1</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">تشفير AES-256 للبيانات، خوادم محلية داخل المملكة، الامتثال لمعايير سدايا، اختبارات اختراق دورية، نظام إشعار فوري عند أي انتهاك.</div>
+      </div>
+    </div>
+
+    <div class="risk-card critical">
+      <div class="card-header">
+        <div class="risk-badge critical">📋</div>
+        <div class="card-meta">
+          <div class="card-title">التغيرات في اللوائح التنظيمية</div>
+          <div class="card-category" style="color:var(--risk-critical);">R3 — تنظيمي / حكومي</div>
+        </div>
+      </div>
+      <div class="risk-level-pill critical">⚠ حرج | درجة المخاطرة: 20/25</div>
+      <div class="risk-desc">صدور قرارات حكومية جديدة من وزارة التعليم أو هيئة الاتصالات تفرض متطلبات قد تعيق التشغيل أو تستلزم تعديلات جوهرية مكلفة على النظام.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">متوسطة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:60%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-critical);">عالٍ جداً</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:90%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">2</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">بناء علاقات استراتيجية مع الجهات التنظيمية مسبقاً، تعيين مستشار قانوني متخصص في التقنية التعليمية، تصميم النظام بمرونة تشريعية عالية.</div>
+      </div>
+    </div>
+
+    <div class="risk-card critical">
+      <div class="card-header">
+        <div class="risk-badge critical">💧</div>
+        <div class="card-meta">
+          <div class="card-title">تسرب بيانات المستخدمين</div>
+          <div class="card-category" style="color:var(--risk-critical);">R2 — تقني / سمعة</div>
+        </div>
+      </div>
+      <div class="risk-level-pill critical">⚠ حرج | درجة المخاطرة: 20/25</div>
+      <div class="risk-desc">اختراق قواعد البيانات السحابية أو ثغرات في API تؤدي إلى كشف بيانات الطلاب وأولياء الأمور مما يسبب أزمة سمعة وملاحقات قضائية.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">مرتفعة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:75%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-critical);">كارثي</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-critical);width:95%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-critical);">3</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">بنية zero-trust، مراجعات أمنية ربع سنوية، تأمين سيبراني، خطة استجابة للحوادث جاهزة، إشعار فوري للمستخدمين ولجهات الرقابة.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-divider">🟠 المخاطر المرتفعة</div>
+  <div class="risks-grid" style="margin-bottom: 28px;">
+
+    <div class="risk-card high">
+      <div class="card-header">
+        <div class="risk-badge high">🏫</div>
+        <div class="card-meta">
+          <div class="card-title">مقاومة التغيير في المدارس</div>
+          <div class="card-category" style="color:var(--risk-high);">R4 — تشغيلي / بشري</div>
+        </div>
+      </div>
+      <div class="risk-level-pill high">⚡ مرتفع | درجة المخاطرة: 16/25</div>
+      <div class="risk-desc">رفض الكوادر الإدارية التقليدية في المدارس اعتماد النظام الرقمي، مما يؤخر التوسع ويرفع تكاليف التنفيذ.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-high);">مرتفعة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:75%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-high);">متوسط-عالٍ</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:65%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-high);">4</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">برامج تدريب مكثفة، نشرات توعوية، نماذج تجريبية مجانية لإثبات القيمة، تعيين مستشار نجاح لكل مدرسة.</div>
+      </div>
+    </div>
+
+    <div class="risk-card high">
+      <div class="card-header">
+        <div class="risk-badge high">💰</div>
+        <div class="card-meta">
+          <div class="card-title">نقص التمويل والسيولة</div>
+          <div class="card-category" style="color:var(--risk-high);">R6 — مالي / استثماري</div>
+        </div>
+      </div>
+      <div class="risk-level-pill high">⚡ مرتفع | درجة المخاطرة: 15/25</div>
+      <div class="risk-desc">عدم كفاية التمويل لتغطية تكاليف التوسع السريع (أجهزة ساعات، بنية سحابية، فريق) قد يوقف التنفيذ في المراحل الأولى.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-high);">متوسطة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:50%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-high);">عالٍ جداً</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:85%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-high);">6</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">تنويع مصادر التمويل (مستثمرون ملاك، صناديق رؤية 2030، إيرادات مبكرة)، اعتماد نموذج اشتراك شهري لضمان تدفق نقدي منتظم.</div>
+      </div>
+    </div>
+
+    <div class="risk-card high">
+      <div class="card-header">
+        <div class="risk-badge high">📡</div>
+        <div class="card-meta">
+          <div class="card-title">انقطاع الاتصال وضعف التغطية</div>
+          <div class="card-category" style="color:var(--risk-high);">R8 — تقني / بنية تحتية</div>
+        </div>
+      </div>
+      <div class="risk-level-pill high">⚡ مرتفع | درجة المخاطرة: 12/25</div>
+      <div class="risk-desc">انقطاع إشارة الإنترنت في المناطق النائية يُعطّل التتبع اللحظي للطلاب ويتسبب في قلق أولياء الأمور وتراجع الثقة بالنظام.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-high);">متوسطة-مرتفعة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:65%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-high);">متوسط</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-high);width:55%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأولوية</span>
+          <span class="metric-value" style="color:var(--risk-high);">7</span>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">تخزين البيانات محلياً في الساعة وإرسالها عند عودة الإشارة، دعم SIM eSIM للاتصال المباشر، خريطة تغطية قبل التوسع.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-divider">🟡 المخاطر المتوسطة</div>
+  <div class="risks-grid" style="margin-bottom: 28px;">
+
+    <div class="risk-card medium">
+      <div class="card-header">
+        <div class="risk-badge medium">🏭</div>
+        <div class="card-meta">
+          <div class="card-title">اضطراب سلاسل الإمداد</div>
+          <div class="card-category" style="color:var(--risk-medium);">R9 — لوجستي / توريد</div>
+        </div>
+      </div>
+      <div class="risk-level-pill medium">⚠ متوسط | درجة المخاطرة: 9/25</div>
+      <div class="risk-desc">تأخر توريد الساعات الذكية بكميات كافية من المصانع المُعتمَدة، مما يُعرقل خطط الإطلاق والتوسع المرحلي.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-medium);">متوسطة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-medium);width:50%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-medium);">متوسط</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-medium);width:50%"></div></div>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">عقود توريد مسبقة مع موردين متعددين، الاحتفاظ بمخزون احتياطي، شراكات مع مصانع في منطقتين جغرافيتين مختلفتين.</div>
+      </div>
+    </div>
+
+    <div class="risk-card medium">
+      <div class="card-header">
+        <div class="risk-badge medium">🤝</div>
+        <div class="card-meta">
+          <div class="card-title">ضغط المنافسة والبدائل</div>
+          <div class="card-category" style="color:var(--risk-medium);">R7 — تنافسي / سوقي</div>
+        </div>
+      </div>
+      <div class="risk-level-pill medium">⚠ متوسط | درجة المخاطرة: 9/25</div>
+      <div class="risk-desc">دخول شركات تقنية كبرى أو منافسين إقليميين بحلول مشابهة بأسعار أقل قد يضغط على حصة Skooly في السوق.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-medium);">متوسطة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-medium);width:55%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-medium);">متوسط</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-medium);width:50%"></div></div>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">بناء ميزة تنافسية عبر التخصيص العميق والتكامل مع ERP المدرسي، تسريع التوسع لبناء قاعدة عملاء ضخمة قبل دخول المنافسين.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-divider">🟢 المخاطر المنخفضة</div>
+  <div class="risks-grid">
+
+    <div class="risk-card low">
+      <div class="card-header">
+        <div class="risk-badge low">⌚</div>
+        <div class="card-meta">
+          <div class="card-title">أعطال الأجهزة الذكية</div>
+          <div class="card-category" style="color:var(--risk-low);">R12 — تقني / منتج</div>
+        </div>
+      </div>
+      <div class="risk-level-pill low">✅ منخفض | درجة المخاطرة: 4/25</div>
+      <div class="risk-desc">تلف أو عطل في الساعات الذكية بسبب سوء الاستخدام أو الصدمات، مما يستلزم استبدالها وتحمل تكاليف إضافية.</div>
+      <div class="risk-metrics">
+        <div class="metric-chip">
+          <span class="metric-label">الاحتمالية</span>
+          <span class="metric-value" style="color:var(--risk-low);">منخفضة</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-low);width:25%"></div></div>
+        </div>
+        <div class="metric-chip">
+          <span class="metric-label">الأثر</span>
+          <span class="metric-value" style="color:var(--risk-low);">منخفض</span>
+          <div class="prob-bar-track"><div class="prob-bar-fill" style="background:var(--risk-low);width:30%"></div></div>
+        </div>
+      </div>
+      <div class="mitigation-box">
+        <div class="mitigation-label">🛡 استراتيجية التخفيف</div>
+        <div class="mitigation-text">ضمان على الأجهزة لمدة سنة، مخزون احتياطي، بوليصة تأمين على الأجهزة ضمن عقود المدارس الكبيرة.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Skooly Smart AI — خريطة تحليل المخاطر الشاملة © 2025</p>
+    <p style="margin-top:6px;">مُعدّة وفق منهجية ISO 31000 لإدارة المخاطر | تُحدَّث دورياً كل ربع سنة</p>
+  </div>
+
+</div>
+</body>
+</html>
